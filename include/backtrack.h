@@ -30,6 +30,7 @@ class Backtrack {
   size_t ans_num;
   std::vector<Vertex> ans;
   size_t ckt;
+  std::vector<bool> is_selected;
 };
 
 #endif  // BACKTRACK_H_

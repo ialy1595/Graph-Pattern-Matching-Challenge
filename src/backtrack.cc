@@ -16,9 +16,12 @@ void Backtrack::DoSelect(const Graph &data, const Graph &query,
 
   Vertex sv = -1;
 
+  size_t cn = 0;
+
   // choose selected vertex that minimum valid candidate size
   size_t mcs = data.GetNumVertices() + 1;
   for(size_t i = 0; i < qs; i++) if(selected_vertex[i] == -1 && full_indegree[i] > 0) {
+    cn++;
     if(full_indegree[i] < mcs) {
       sv = i;
       mcs = full_indegree[i];
@@ -51,11 +54,11 @@ void Backtrack::DoSelect(const Graph &data, const Graph &query,
     bool valid = true;
     for(size_t i = 0; (i < qs) && valid; i++) {
       if(query.GetLabel(i) != data.GetLabel(selected_vertex[i])) valid = false;
-      for(size_t t = query.GetNeighborStartOffset(i); t < query.GetNeighborEndOffset(i); t++) {
-        Vertex j = query.GetNeighbor(t);
+      for(size_t j = i + 1; (j < qs) && valid; j++) {
         if(selected_vertex[i] == selected_vertex[j]) valid = false;
-        if(query.GetLabel(j) != data.GetLabel(selected_vertex[j])) valid = false;
-        if(!data.IsNeighbor(selected_vertex[i], selected_vertex[j])) valid = false;
+        if(query.IsNeighbor(i, j)) {
+          if(!data.IsNeighbor(selected_vertex[i], selected_vertex[j])) valid = false;
+        }
       }
     }
     if(!valid) std::cout << "Invalid answer!" << "\n";
@@ -68,59 +71,75 @@ void Backtrack::DoSelect(const Graph &data, const Graph &query,
   
   // loop vertex in candidate set of sv
   for(size_t i = 0; i < cs.GetCandidateSize(sv); i++) {
-    if(dag_candidate_getdegree[sv][i] == dag_query_indegree[sv]) {
+    if(dag_candidate_getdegree[sv][i] == dag_query_indegree[sv] && (!is_selected[cs.GetCandidate(sv, i)])) {
       bool valid = true;
 
-      //check same vertex in matching
-      for(size_t j = 0; (j < qs) && valid; j++) if(selected_vertex[j] == cs.GetCandidate(sv, i)) valid = false;
-      if(valid) {
-        selected_vertex[sv] = cs.GetCandidate(sv, i);
+      selected_vertex[sv] = cs.GetCandidate(sv, i);
+      is_selected[selected_vertex[sv]] = true;
 
 
-        // apply candidate edge
-        for(size_t j = 0; j < dag_candidate_edge[sv][i].size(); j++) {
-          Vertex qv = dag_candidate_edge[sv][i][j].first;
-          Vertex qvd = dag_candidate_edge[sv][i][j].second;
+      // apply candidate edge
+      for(size_t j = 0; j < dag_candidate_edge[sv][i].size(); j++) {
+        Vertex qv = dag_candidate_edge[sv][i][j].first;
+        Vertex qvd = dag_candidate_edge[sv][i][j].second;
+        if(!is_selected[cs.GetCandidate(qv, qvd)]) {
           dag_candidate_getdegree[qv][qvd]++;
           if(dag_candidate_getdegree[qv][qvd] == dag_query_indegree[qv]) {
             full_indegree[qv]++;
           }
         }
+      }
 
-        //check if there is empty valid candidate near sv
-        for(size_t j = 0; j < dag_query_edge[sv].size(); j++) {
-          Vertex qv = dag_query_edge[sv][j];
-          dag_query_getdegree[qv]++;
-          if(dag_query_getdegree[qv] == dag_query_indegree[qv]) {
-            if(full_indegree[qv] == 0) {
-              valid = false;
-            } 
+      //check if there is empty valid candidate near sv
+      for(size_t j = 0; j < dag_query_edge[sv].size(); j++) {
+        Vertex qv = dag_query_edge[sv][j];
+        dag_query_getdegree[qv]++;
+        bool t_valid = false;
+        for(size_t k = 0; k < cs.GetCandidateSize(qv); k++) {
+          if(dag_candidate_getdegree[qv][k] == dag_query_getdegree[qv]) {
+            t_valid = true;
+            break;
           }
         }
-
-        ans.push_back(sv);
-
-        // recursive
-        if(valid) DoSelect(data, query, cs);
-
-
-        // restore for backtrack
-        ans.pop_back();
-
-        for(size_t j = 0; j < dag_query_edge[sv].size(); j++) {
-          Vertex qv = dag_query_edge[sv][j];
-          dag_query_getdegree[qv]--;
+        if(!t_valid) {
+          valid = false;
         }
+      }
 
-        for(size_t j = 0; j < dag_candidate_edge[sv][i].size(); j++) {
-          Vertex qv = dag_candidate_edge[sv][i][j].first;
-          Vertex qvd = dag_candidate_edge[sv][i][j].second;
+      ans.push_back(sv);
+
+      // recursive
+      if(valid) DoSelect(data, query, cs);
+      else {
+        /*if(ckt == 0) {
+          std::cout << "\n" << sv << " ";
+          for(size_t j = 0; j < ans.size(); j++) std::cout << ans[j] << "@" << selected_vertex[ans[j]] << " ";
+          std::cout << "\n";
+        }
+        ckt = (ckt + 1) % 10000000;*/
+      }
+
+
+      // restore for backtrack
+      ans.pop_back();
+
+      for(size_t j = 0; j < dag_query_edge[sv].size(); j++) {
+        Vertex qv = dag_query_edge[sv][j];
+        dag_query_getdegree[qv]--;
+      }
+
+      for(size_t j = 0; j < dag_candidate_edge[sv][i].size(); j++) {
+        Vertex qv = dag_candidate_edge[sv][i][j].first;
+        Vertex qvd = dag_candidate_edge[sv][i][j].second;
+        if(!is_selected[cs.GetCandidate(qv, qvd)]) {
           if(dag_candidate_getdegree[qv][qvd] == dag_query_indegree[qv]) full_indegree[qv]--;
           dag_candidate_getdegree[qv][qvd]--;
         }
-
-        selected_vertex[sv] = -1;
       }
+
+      is_selected[selected_vertex[sv]] = false;
+
+      selected_vertex[sv] = -1;
     }
   }
   return;
@@ -164,6 +183,8 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 
   dag_query_getdegree.resize(qs, 0);
 
+  is_selected.resize(data.GetNumVertices(), false);
+
   ans_num = 0;
 
   ckt = 0;
@@ -171,7 +192,13 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 
 
   // make dag query and candidate
-  for(size_t i = 0; i < qs; i++) if(!visited[i]) {
+  std::vector<std::pair<size_t, Vertex> > ord;
+  ord.clear();
+  for(size_t i = 0; i < qs; i++) ord.push_back(std::make_pair(cs.GetCandidateSize(i), i));
+  std::sort(ord.begin(), ord.end());
+
+  for(size_t oi = 0; oi < qs; oi++) {
+    Vertex i = ord[oi].second;
     visited[i] = true;
     for(size_t t = query.GetNeighborStartOffset(i); t < query.GetNeighborEndOffset(i); t++) {
       Vertex j = query.GetNeighbor(t);
