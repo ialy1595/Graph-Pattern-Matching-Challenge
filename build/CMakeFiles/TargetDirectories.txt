@@ -1,5 +1,0 @@
-/mnt/c/Users/GOO/Downloads/수업/알골/algorithm2021-graph-pattern-matching/build/CMakeFiles/rebuild_cache.dir
-/mnt/c/Users/GOO/Downloads/수업/알골/algorithm2021-graph-pattern-matching/build/CMakeFiles/edit_cache.dir
-/mnt/c/Users/GOO/Downloads/수업/알골/algorithm2021-graph-pattern-matching/build/main/CMakeFiles/rebuild_cache.dir
-/mnt/c/Users/GOO/Downloads/수업/알골/algorithm2021-graph-pattern-matching/build/main/CMakeFiles/edit_cache.dir
-/mnt/c/Users/GOO/Downloads/수업/알골/algorithm2021-graph-pattern-matching/build/main/CMakeFiles/program.dir

@@ -94,7 +94,7 @@ void Backtrack::DoSelect(const Graph &data, const Graph &query,
           if(dag_query_getdegree[qv] == dag_query_indegree[qv]) {
             if(full_indegree[qv] == 0) {
               valid = false;
-            }
+            } 
           }
         }
 
