@@ -19,19 +19,21 @@ void Backtrack::DoSelect(const Graph &data, const Graph &query,
   size_t cn = 0;
 
   // choose selected vertex that minimum valid candidate size
-  size_t mcs = data.GetNumVertices() + 1;
+  size_t mcs = data.GetNumVertices() * 2 + 1;
+  size_t mv;
   for(size_t i = 0; i < qs; i++) if(selected_vertex[i] == -1 && full_indegree[i] > 0) {
-    cn++;
-    if(full_indegree[i] < mcs) {
+    mv = full_indegree[i];
+    if(dag_query_edge[i].size() == 0) mv += data.GetNumVertices();
+    if(mv < mcs) {
       sv = i;
-      mcs = full_indegree[i];
+      mcs = mv;
+      cn = 0;
     }
-    else if(full_indegree[i] == mcs) {
-      if(cs.GetCandidateSize(i) < cs.GetCandidateSize(sv)) {
-        sv = i;
-      }
+    else if(mv == mcs) {
+      cn++;
     }
   }
+  //if(cn > 5) std::cout << "cc " << cn << " " << mcs << "\n";
 
   if(sv == -1) {
     for(size_t i = 0; i < qs; i++) if(selected_vertex[i] == -1) {
@@ -51,7 +53,7 @@ void Backtrack::DoSelect(const Graph &data, const Graph &query,
     std::cout << "\n";*/
 
     // check valid
-    bool valid = true;
+    /*bool valid = true;
     for(size_t i = 0; (i < qs) && valid; i++) {
       if(query.GetLabel(i) != data.GetLabel(selected_vertex[i])) valid = false;
       for(size_t j = i + 1; (j < qs) && valid; j++) {
@@ -61,7 +63,7 @@ void Backtrack::DoSelect(const Graph &data, const Graph &query,
         }
       }
     }
-    if(!valid) std::cout << "Invalid answer!" << "\n";
+    if(!valid) std::cout << "Invalid answer!" << "\n";*/
 
     ans_num++;
 
@@ -73,6 +75,7 @@ void Backtrack::DoSelect(const Graph &data, const Graph &query,
   for(size_t i = 0; i < cs.GetCandidateSize(sv); i++) {
     if(dag_candidate_getdegree[sv][i] == dag_query_indegree[sv] && (!is_selected[cs.GetCandidate(sv, i)])) {
       bool valid = true;
+      //if(sv == 21 && cs.GetCandidate(sv, i) == 495) continue;
 
       selected_vertex[sv] = cs.GetCandidate(sv, i);
       is_selected[selected_vertex[sv]] = true;
@@ -103,6 +106,7 @@ void Backtrack::DoSelect(const Graph &data, const Graph &query,
         }
         if(!t_valid) {
           valid = false;
+          //if(ckt == 0) std::cout << qv << " ";
         }
       }
 
@@ -112,7 +116,7 @@ void Backtrack::DoSelect(const Graph &data, const Graph &query,
       if(valid) DoSelect(data, query, cs);
       else {
         /*if(ckt == 0) {
-          std::cout << "\n" << sv << " ";
+          std::cout << "\n" << sv << "#" << ans.size() << "\n";
           for(size_t j = 0; j < ans.size(); j++) std::cout << ans[j] << "@" << selected_vertex[ans[j]] << " ";
           std::cout << "\n";
         }
@@ -217,7 +221,6 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
     }
   }
 
-  
   // start vertex
   for(size_t i = 0; i < qs; i++) if(dag_query_indegree[i] == 0) {
     full_indegree[i] = cs.GetCandidateSize(i);
