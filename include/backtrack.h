@@ -29,7 +29,6 @@ class Backtrack {
   std::vector<size_t> full_indegree;
   size_t ans_num;
   std::vector<Vertex> ans;
-  size_t ckt;
   std::vector<bool> is_selected;
 };
 

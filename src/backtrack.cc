@@ -10,47 +10,42 @@ Backtrack::~Backtrack() {}
 
 void Backtrack::DoSelect(const Graph &data, const Graph &query,
                                 const CandidateSet &cs) {
+  // find 100000 answer
   if(ans_num >= 100000) return;
 
   size_t qs = query.GetNumVertices();
 
   Vertex sv = -1;
 
-  size_t cn = 0;
-
-  // choose selected vertex that minimum valid candidate size
+  // choose selected vertex that minimum valid candidate size and prefer have at least 1 out degree
   size_t mcs = data.GetNumVertices() * 2 + 1;
   size_t mv;
-  for(size_t i = 0; i < qs; i++) if(selected_vertex[i] == -1 && full_indegree[i] > 0) {
+  for(size_t i = 0; i < qs; i++) if((selected_vertex[i]) == -1 && (dag_query_getdegree[i] == dag_query_indegree[i])) {
     mv = full_indegree[i];
-    if(dag_query_edge[i].size() == 0) mv += data.GetNumVertices();
+    if((mv != 0) && (dag_query_edge[i].size() == 0)) mv += data.GetNumVertices();
     if(mv < mcs) {
       sv = i;
       mcs = mv;
-      cn = 0;
-    }
-    else if(mv == mcs) {
-      cn++;
     }
   }
-  //if(cn > 5) std::cout << "cc " << cn << " " << mcs << "\n";
 
+  // there is no valid vertex -> traverse end
   if(sv == -1) {
     for(size_t i = 0; i < qs; i++) if(selected_vertex[i] == -1) {
       return;
     }
 
     // test print
-    if(ans_num < 5) {
+    /*if(ans_num < 5) {
       std::cout << "a";
       for(size_t i = 0; i < qs; i++) std::cout << " " << selected_vertex[i];
       std::cout << "\n";
-    }
+    }*/
 
     // print answer
-    /*std::cout << "a";
+    std::cout << "a";
     for(size_t i = 0; i < qs; i++) std::cout << " " << selected_vertex[i];
-    std::cout << "\n";*/
+    std::cout << "\n";
 
     // check valid
     /*bool valid = true;
@@ -74,8 +69,6 @@ void Backtrack::DoSelect(const Graph &data, const Graph &query,
   // loop vertex in candidate set of sv
   for(size_t i = 0; i < cs.GetCandidateSize(sv); i++) {
     if(dag_candidate_getdegree[sv][i] == dag_query_indegree[sv] && (!is_selected[cs.GetCandidate(sv, i)])) {
-      bool valid = true;
-      //if(sv == 21 && cs.GetCandidate(sv, i) == 495) continue;
 
       selected_vertex[sv] = cs.GetCandidate(sv, i);
       is_selected[selected_vertex[sv]] = true;
@@ -93,35 +86,16 @@ void Backtrack::DoSelect(const Graph &data, const Graph &query,
         }
       }
 
-      //check if there is empty valid candidate near sv
+      // apply query edge
       for(size_t j = 0; j < dag_query_edge[sv].size(); j++) {
         Vertex qv = dag_query_edge[sv][j];
         dag_query_getdegree[qv]++;
-        bool t_valid = false;
-        for(size_t k = 0; k < cs.GetCandidateSize(qv); k++) {
-          if(dag_candidate_getdegree[qv][k] == dag_query_getdegree[qv]) {
-            t_valid = true;
-            break;
-          }
-        }
-        if(!t_valid) {
-          valid = false;
-          //if(ckt == 0) std::cout << qv << " ";
-        }
       }
 
       ans.push_back(sv);
 
       // recursive
-      if(valid) DoSelect(data, query, cs);
-      else {
-        /*if(ckt == 0) {
-          std::cout << "\n" << sv << "#" << ans.size() << "\n";
-          for(size_t j = 0; j < ans.size(); j++) std::cout << ans[j] << "@" << selected_vertex[ans[j]] << " ";
-          std::cout << "\n";
-        }
-        ckt = (ckt + 1) % 10000000;*/
-      }
+      DoSelect(data, query, cs);
 
 
       // restore for backtrack
@@ -158,8 +132,6 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
   size_t qs = query.GetNumVertices();
 
 
-
-
   // init
   std::vector<bool> visited;
   visited.resize(qs, false);
@@ -190,8 +162,6 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
   is_selected.resize(data.GetNumVertices(), false);
 
   ans_num = 0;
-
-  ckt = 0;
 
 
 
@@ -228,8 +198,8 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 
   DoSelect(data, query, cs);
 
-  std::cout << ans_num << "\n";
-  if(ans_num == 100000) std::cout << "find 100000 matching!" << "\n";
+  /*std::cout << ans_num << "\n";
+  if(ans_num == 100000) std::cout << "find 100000 matching!" << "\n";*/
 
   return;
 }
