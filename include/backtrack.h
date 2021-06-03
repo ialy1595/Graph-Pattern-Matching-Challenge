@@ -19,7 +19,6 @@ class Backtrack {
                        const CandidateSet &cs);
  private:
   std::vector<std::vector<Vertex> > dag_query_edge;
-  std::vector<std::vector<Vertex> > dag_query_edge_inv;
   std::vector<size_t> dag_query_indegree;
   std::vector<std::vector<std::vector<std::pair<Vertex, Vertex> > > > dag_candidate_edge;
   std::vector<size_t> dag_query_getdegree;
@@ -30,6 +29,9 @@ class Backtrack {
   size_t ans_num;
   std::vector<Vertex> ans;
   std::vector<bool> is_selected;
+  std::vector<Vertex> only_v;
+  std::vector<std::vector<std::pair<Vertex, size_t> > > dq;
+  std::vector<size_t> back_cnt;
 };
 
 #endif  // BACKTRACK_H_
